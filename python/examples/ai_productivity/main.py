@@ -1,5 +1,6 @@
+import os
 import dotenv
-from openai import OpenAI
+from openai import AzureOpenAI
 
 from composio_openai import App, ComposioToolSet
 from composio.utils.logging import get as get_logger
@@ -11,11 +12,16 @@ logger = get_logger(__name__)
 dotenv.load_dotenv()
 
 # Initialize tools.
-openai_client = OpenAI()
+openai_client = AzureOpenAI(
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_version="2023-05-15",
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
+)
 composio_toolset = ComposioToolSet()
 
 # Retrieve actions
-actions = composio_toolset.get_tools(apps=[App.SYSTEMTOOLS, App.IMAGEANALYSERTOOL])
+# composio_toolset = ComposioToolSet(entity_id="Jessica")
+actions = composio_toolset.get_tools(apps=[App.GITHUB])
 
 # Setup openai assistant
 assistant_instruction = (
@@ -53,8 +59,8 @@ assistant_instruction = (
 assistant = openai_client.beta.assistants.create(
     name="Personal Productivity Assistant",
     instructions=assistant_instruction,
-    model="gpt-4-turbo",
-    tools=actions,  # type: ignore
+    model="gpt-4o",
+    tools=actions,
 )
 
 
